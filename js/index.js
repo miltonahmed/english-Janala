@@ -7,13 +7,24 @@ const loadLessons = () => {
       displayLessons(json.data);
     });
 };
+const removeActive =()=>{
+  const lessonButtons = document.querySelectorAll('.lesson_btns');
+  lessonButtons.forEach((btn)=> btn.classList.remove('active'));
+  
+
+}
 
 // 2. Load all words for a specific lesson
 const lessonLoadWord = (id) => {
   const url = `https://openapi.programming-hero.com/api/level/${id}`;
   fetch(url) // API call for a specific lesson (by id/level_no)
     .then(res => res.json())
-    .then(data => displayWord(data.data)); // Pass word list to display
+    .then(data => {
+      removeActive() // remove all active class 
+      const clickBtn = document.getElementById(`lesson_btn-${id}`);
+      clickBtn.classList.add('active') // add active class
+      displayWord(data.data);
+    }); // Pass word list to display
 };
 
 
@@ -24,7 +35,13 @@ const displayWord = (words) => {
   console.log('Before clear:', wordContainer.innerHTML.length);
   wordContainer.innerHTML = "";
   if(words.length === 0){
-    alert('No word detected')
+    wordContainer.innerHTML = `
+    <div class="text-center col-span-full space-y-4">
+      <img class="mx-auto" src="./assets/alert-error.png" alt="alert-error">
+      <p class="font-hindSiliguri text-sm text-[#79716B] font-semibold">এই Lesson এ এখনো কোন Vocabulary যুক্ত করা
+        হয়নি।</p>
+      <h2 class="font-hidShiliguri text-xl md:text-4xl tex-primary font-semibold">নেক্সট Lesson এ যান</h2>
+    </div>`;
     return;
   } // Clear old content before showing new one
 
@@ -34,14 +51,14 @@ const displayWord = (words) => {
     card.innerHTML = `
       <div class="bg-white text-center space-y-3 rounded-xl shadow-sm py-10 px-5">
         <!-- Word Title -->
-        <h2 class="font-poppins text-2xl md:text-3xl font-bold text-primary">${word.word}</h2>
+        <h2 class="font-poppins text-2xl md:text-3xl font-bold text-primary">${word.word? word.word:'শব্দ পাওয়া যায়নি'}</h2>
         
         <!-- Subtitle -->
         <p class="font-poppins font-medium text-lg md:text-xl text-black">Meaning / Pronunciation</p>
         
         <!-- Meaning & Pronunciation -->
         <div class="font-poppins font-semibold text-lg md:text-3xl text-primary">
-          ${word.meaning} / ${word.pronunciation}
+          ${word.meaning? word.meaning:'অর্থ পাওয়া যায়নি'} / ${word.pronunciation? word.pronunciation:'Pronunciation পাওয়া যায়নি'}
         </div>
         
         <!-- Action Buttons -->
@@ -68,9 +85,11 @@ const displayLessons = lessons => {
   for (const lesson of lessons) {
     const btnDiv = document.createElement('div');
     btnDiv.innerHTML = `
+  
       <button
+      id="lesson_btn-${lesson.level_no}"
         onclick="lessonLoadWord(${lesson.level_no})" // When clicked, load that lesson's words
-        class="btn btn-outline btn-primary font-poppins font-semibold text-sm text-[#422AD5] hover:text-white">
+        class=" lesson_btns btn btn-outline btn-primary font-poppins font-semibold text-sm text-[#422AD5] hover:text-white">
         <i class="fa-solid fa-book-open"></i>
         Lesson-${lesson.level_no}
       </button>
